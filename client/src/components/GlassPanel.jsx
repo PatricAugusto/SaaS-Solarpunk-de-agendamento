@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { media } from '../styles/media';
 
 export const GlassPanel = styled.div`
   background: ${({ theme }) => theme.colors.surface};
@@ -11,7 +12,6 @@ export const GlassPanel = styled.div`
   position: relative;
   overflow: hidden;
 
-  /* reflexo sutil no topo, efeito de vidro líquido */
   &::before {
     content: '';
     position: absolute;
@@ -26,4 +26,9 @@ export const GlassPanel = styled.div`
       transparent
     );
   }
+
+  ${media.mobile`
+    padding: ${({ theme, $padding }) => theme.spacing($padding ? $padding - 1 : 2.5)};
+    border-radius: ${({ theme }) => theme.radii.md};
+  `}
 `;

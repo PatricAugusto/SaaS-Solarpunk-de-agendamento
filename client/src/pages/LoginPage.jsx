@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
 import { FormGroup, Label, Input, ErrorText } from '../components/FormField';
+import { PageContainer } from '../components/PageContainer';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -31,8 +32,8 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
-      <GlassPanel style={{ width: '100%', maxWidth: 400 }}>
+    <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+      <GlassPanel>
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
           <h1 className="font-display" style={{ fontSize: '1rem' }}>Entrar</h1>
 
@@ -58,6 +59,6 @@ export function LoginPage() {
           </p>
         </form>
       </GlassPanel>
-    </div>
+    </PageContainer>
   );
 }

@@ -5,18 +5,39 @@ import { ptBR } from 'date-fns/locale';
 import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
 import { FormGroup, Label, Input } from '../components/FormField';
+import { PageContainer } from '../components/PageContainer';
+import { Loader } from '../components/Loader';
+import { EmptyState } from '../components/EmptyState';
 import { eventTypeService } from '../services/eventTypeService';
+import styled from 'styled-components';
+import { media } from '../styles/media';
 
 const DAYS_TO_SHOW = 5;
+
+const DaysRow = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  ${media.mobile`
+    flex-direction: column;
+  `}
+`;
+
+const SlotsRow = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
 
 export function PublicBookingPage() {
   const { username, slug } = useParams();
   const [eventType, setEventType] = useState(null);
   const [selectedDate, setSelectedDate] = useState(startOfToday());
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots] = useState(null); // null = ainda carregando
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [guest, setGuest] = useState({ guestName: '', guestEmail: '' });
-  const [status, setStatus] = useState('idle'); // idle | booking | done | error
+  const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -26,6 +47,7 @@ export function PublicBookingPage() {
   useEffect(() => {
     if (!eventType) return;
     setSelectedSlot(null);
+    setSlots(null);
     eventTypeService
       .getAvailability(username, slug, format(selectedDate, 'yyyy-MM-dd'))
       .then(setSlots);
@@ -46,7 +68,6 @@ export function PublicBookingPage() {
     } catch (err) {
       setErrorMsg(err.response?.data?.error || 'Erro ao confirmar agendamento');
       setStatus('error');
-      // horário pode ter sido ocupado nesse meio tempo — recarrega os slots
       eventTypeService
         .getAvailability(username, slug, format(selectedDate, 'yyyy-MM-dd'))
         .then(setSlots);
@@ -54,12 +75,18 @@ export function PublicBookingPage() {
     }
   }
 
-  if (!eventType) return null;
+  if (!eventType) {
+    return (
+      <PageContainer $narrow>
+        <Loader label="Carregando página de agendamento..." />
+      </PageContainer>
+    );
+  }
 
   if (status === 'done') {
     return (
-      <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
-        <GlassPanel style={{ maxWidth: 420, textAlign: 'center' }}>
+      <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+        <GlassPanel style={{ textAlign: 'center' }}>
           <h1 className="font-display" style={{ fontSize: '1rem', color: '#39FF88', marginBottom: 16 }}>
             Confirmado! ✨
           </h1>
@@ -70,12 +97,12 @@ export function PublicBookingPage() {
             </span>
           </p>
         </GlassPanel>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: 24, display: 'grid', gap: 20 }}>
+    <PageContainer>
       <GlassPanel>
         <h1 className="font-display" style={{ fontSize: '1rem' }}>{eventType.title}</h1>
         <p style={{ marginTop: 10, color: '#9FC9B4' }}>
@@ -84,10 +111,9 @@ export function PublicBookingPage() {
         {eventType.description && <p style={{ marginTop: 10 }}>{eventType.description}</p>}
       </GlassPanel>
 
-      {/* Seletor de dia */}
       <GlassPanel>
         <h2 className="font-display" style={{ fontSize: '0.8rem', marginBottom: 16 }}>Escolha o dia</h2>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <DaysRow>
           {dayOptions.map((day) => {
             const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
             return (
@@ -97,32 +123,39 @@ export function PublicBookingPage() {
                 onClick={() => setSelectedDate(day)}
                 style={{ opacity: isSelected ? 1 : 0.6 }}
               >
-                {format(day, "EEE dd/MM", { locale: ptBR })}
+                {format(day, 'EEE dd/MM', { locale: ptBR })}
               </NeonButton>
             );
           })}
-        </div>
+        </DaysRow>
       </GlassPanel>
 
-      {/* Slots disponíveis */}
       <GlassPanel>
         <h2 className="font-display" style={{ fontSize: '0.8rem', marginBottom: 16 }}>Horários disponíveis</h2>
-        {slots.length === 0 && <p>Nenhum horário livre nesse dia.</p>}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {slots.map((slot) => (
-            <NeonButton
-              key={slot.start}
-              $variant={selectedSlot?.start === slot.start ? 'green' : 'cyan'}
-              onClick={() => setSelectedSlot(slot)}
-              className="font-mono"
-            >
-              {slot.label}
-            </NeonButton>
-          ))}
-        </div>
+        {slots === null ? (
+          <Loader label="Buscando horários..." />
+        ) : slots.length === 0 ? (
+          <EmptyState
+            icon="😴"
+            title="Sem horários livres nesse dia"
+            subtitle="Tente escolher outro dia na lista acima."
+          />
+        ) : (
+          <SlotsRow>
+            {slots.map((slot) => (
+              <NeonButton
+                key={slot.start}
+                $variant={selectedSlot?.start === slot.start ? 'green' : 'cyan'}
+                onClick={() => setSelectedSlot(slot)}
+                className="font-mono"
+              >
+                {slot.label}
+              </NeonButton>
+            ))}
+          </SlotsRow>
+        )}
       </GlassPanel>
 
-      {/* Formulário de confirmação */}
       {selectedSlot && (
         <GlassPanel>
           <h2 className="font-display" style={{ fontSize: '0.8rem', marginBottom: 16 }}>Seus dados</h2>
@@ -151,6 +184,6 @@ export function PublicBookingPage() {
           </form>
         </GlassPanel>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -4,9 +4,31 @@ import { ptBR } from 'date-fns/locale';
 import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
 import { FormGroup, Label, Input } from '../components/FormField';
+import { PageContainer } from '../components/PageContainer';
+import { DashboardHeader } from '../components/DashboardHeader';
+import { Loader } from '../components/Loader';
+import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import { eventTypeService } from '../services/eventTypeService';
 import { bookingService } from '../services/bookingService';
+import styled from 'styled-components';
+import { media } from '../styles/media';
+
+const ListRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+
+  ${media.mobile`
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  `}
+`;
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -14,6 +36,7 @@ export function DashboardPage() {
   const [bookings, setBookings] = useState([]);
   const [newEvent, setNewEvent] = useState({ title: '', durationMinutes: 30, description: '' });
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -32,9 +55,14 @@ export function DashboardPage() {
 
   async function handleCreateEventType(e) {
     e.preventDefault();
-    await eventTypeService.create(newEvent);
-    setNewEvent({ title: '', durationMinutes: 30, description: '' });
-    loadData();
+    setCreating(true);
+    try {
+      await eventTypeService.create(newEvent);
+      setNewEvent({ title: '', durationMinutes: 30, description: '' });
+      await loadData();
+    } finally {
+      setCreating(false);
+    }
   }
 
   async function handleDeleteEventType(id) {
@@ -47,25 +75,26 @@ export function DashboardPage() {
     loadData();
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <PageContainer>
+        <Loader label="Carregando seu painel..." />
+      </PageContainer>
+    );
+  }
+
+  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, display: 'grid', gap: 24 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="font-display" style={{ fontSize: '1.1rem' }}>
-          Olá, {user.name.split(' ')[0]} 🌿
-        </h1>
-        <NeonButton $variant="magenta" onClick={logout}>Sair</NeonButton>
-      </header>
+    <PageContainer>
+      <DashboardHeader userName={user.name} onLogout={logout} />
 
-      {/* Link público */}
       <GlassPanel $padding={3}>
-        <p className="font-mono" style={{ fontSize: '1.1rem', color: '#3DFDFF' }}>
+        <p className="font-mono" style={{ fontSize: '1.05rem', color: '#3DFDFF', wordBreak: 'break-all' }}>
           Sua página pública: {window.location.origin}/{user.username}/[slug-do-evento]
         </p>
       </GlassPanel>
 
-      {/* Criar novo tipo de evento */}
       <GlassPanel>
         <h2 className="font-display" style={{ fontSize: '0.9rem', marginBottom: 16 }}>
           Novo tipo de evento
@@ -97,64 +126,55 @@ export function DashboardPage() {
               onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
             />
           </FormGroup>
-          <NeonButton type="submit" $variant="green">Criar</NeonButton>
+          <NeonButton type="submit" $variant="green" disabled={creating}>
+            {creating ? 'Criando...' : 'Criar'}
+          </NeonButton>
         </form>
       </GlassPanel>
 
-      {/* Lista de tipos de evento */}
       <GlassPanel>
         <h2 className="font-display" style={{ fontSize: '0.9rem', marginBottom: 16 }}>
           Meus tipos de evento
         </h2>
-        <div style={{ display: 'grid', gap: 12 }}>
-          {eventTypes.length === 0 && <p>Nenhum tipo de evento criado ainda.</p>}
-          {eventTypes.map((et) => (
-            <div
-              key={et.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 14px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 12,
-              }}
-            >
-              <div>
-                <strong>{et.title}</strong>
-                <span style={{ marginLeft: 10, color: '#9FC9B4', fontSize: '0.85rem' }}>
-                  {et.duration_minutes} min · /{user.username}/{et.slug}
-                </span>
-              </div>
-              <NeonButton $variant="magenta" onClick={() => handleDeleteEventType(et.id)}>
-                Excluir
-              </NeonButton>
-            </div>
-          ))}
-        </div>
+        {eventTypes.length === 0 ? (
+          <EmptyState
+            icon="🗓️"
+            title="Nenhum evento ainda"
+            subtitle="Crie seu primeiro tipo de evento acima para gerar sua página pública de agendamento."
+          />
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {eventTypes.map((et) => (
+              <ListRow key={et.id}>
+                <div>
+                  <strong>{et.title}</strong>
+                  <span style={{ marginLeft: 10, color: '#9FC9B4', fontSize: '0.85rem' }}>
+                    {et.duration_minutes} min · /{user.username}/{et.slug}
+                  </span>
+                </div>
+                <NeonButton $variant="magenta" onClick={() => handleDeleteEventType(et.id)}>
+                  Excluir
+                </NeonButton>
+              </ListRow>
+            ))}
+          </div>
+        )}
       </GlassPanel>
 
-      {/* Lista de agendamentos */}
       <GlassPanel>
         <h2 className="font-display" style={{ fontSize: '0.9rem', marginBottom: 16 }}>
           Próximos agendamentos
         </h2>
-        <div style={{ display: 'grid', gap: 12 }}>
-          {bookings.length === 0 && <p>Nenhum agendamento ainda.</p>}
-          {bookings
-            .filter((b) => b.status === 'confirmed')
-            .map((b) => (
-              <div
-                key={b.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 14px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 12,
-                }}
-              >
+        {confirmedBookings.length === 0 ? (
+          <EmptyState
+            icon="📭"
+            title="Nenhum agendamento ainda"
+            subtitle="Assim que alguém marcar um horário com você, ele aparece aqui."
+          />
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {confirmedBookings.map((b) => (
+              <ListRow key={b.id}>
                 <div>
                   <strong>{b.guest_name}</strong> — {b.event_title}
                   <div className="font-mono" style={{ color: '#3DFDFF' }}>
@@ -164,10 +184,11 @@ export function DashboardPage() {
                 <NeonButton $variant="magenta" onClick={() => handleCancelBooking(b.id)}>
                   Cancelar
                 </NeonButton>
-              </div>
+              </ListRow>
             ))}
-        </div>
+          </div>
+        )}
       </GlassPanel>
-    </div>
+    </PageContainer>
   );
 }

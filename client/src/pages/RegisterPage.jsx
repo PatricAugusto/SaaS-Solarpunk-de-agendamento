@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
 import { FormGroup, Label, Input, ErrorText } from '../components/FormField';
+import { PageContainer } from '../components/PageContainer';
 import { useAuth } from '../context/AuthContext';
 
 export function RegisterPage() {
@@ -31,8 +32,8 @@ export function RegisterPage() {
   }
 
   return (
-    <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
-      <GlassPanel style={{ width: '100%', maxWidth: 420 }}>
+    <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+      <GlassPanel>
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 18 }}>
           <h1 className="font-display" style={{ fontSize: '1rem' }}>Criar conta</h1>
 
@@ -67,6 +68,6 @@ export function RegisterPage() {
           </p>
         </form>
       </GlassPanel>
-    </div>
+    </PageContainer>
   );
 }

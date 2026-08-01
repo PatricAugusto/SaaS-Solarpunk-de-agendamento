@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import { media } from '../styles/media';
 
 const variants = {
   green: css`
@@ -28,6 +29,7 @@ export const NeonButton = styled.button`
   border-radius: ${({ theme }) => theme.radii.pill};
   padding: 12px 28px;
   transition: all 0.25s ease;
+  min-height: 44px; /* área de toque confortável */
 
   ${({ $variant }) => variants[$variant || 'green']}
 
@@ -41,4 +43,9 @@ export const NeonButton = styled.button`
     transform: none;
     box-shadow: none;
   }
+
+  ${media.mobile`
+    width: 100%;
+    font-size: 1rem;
+  `}
 `;

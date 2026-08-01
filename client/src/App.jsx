@@ -1,21 +1,29 @@
-import { GlassPanel } from './components/GlassPanel';
-import { NeonButton } from './components/NeonButton';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { PublicBookingPage } from './pages/PublicBookingPage';
 
 function App() {
   return (
-    <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
-      <GlassPanel style={{ maxWidth: 420, textAlign: 'center', display: 'grid', gap: 24 }}>
-        <h1 className="font-display" style={{ fontSize: '1.1rem' }}>AgendaGlass</h1>
-        <p style={{ color: 'inherit' }}>
-          Preview do design system: liquid glass + solarpunk neon + retro gaming.
-        </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <NeonButton $variant="green">Agendar</NeonButton>
-          <NeonButton $variant="cyan">Entrar</NeonButton>
-          <NeonButton $variant="magenta">Cancelar</NeonButton>
-        </div>
-      </GlassPanel>
-    </div>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/:username/:slug" element={<PublicBookingPage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 

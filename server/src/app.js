@@ -3,6 +3,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const eventTypeRoutes = require('./routes/eventTypeRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 
@@ -14,5 +16,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/event-types', eventTypeRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 module.exports = app;

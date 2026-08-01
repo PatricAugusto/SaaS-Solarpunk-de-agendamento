@@ -53,4 +53,10 @@ export const theme = {
   },
 
   spacing: (multiplier) => `${multiplier * 8}px`,
+
+   breakpoints: {
+    mobile: '480px',
+    tablet: '768px',
+    desktop: '1024px',
+  },
 };

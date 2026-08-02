@@ -39,7 +39,7 @@ export function RegisterPage() {
 
   return (
     <>
-      <RetroBackground />
+      <RetroBackground intensity="full" />
       <PageContainer
         $narrow
         style={{ minHeight: "100vh", alignContent: "center" }}

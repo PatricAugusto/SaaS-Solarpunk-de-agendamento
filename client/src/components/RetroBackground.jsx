@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 const breathe = keyframes`
   0%, 100% { opacity: 0.85; }
@@ -75,7 +75,7 @@ const Vignette = styled.div`
   background: radial-gradient(circle at center, transparent 32%, rgba(11, 26, 20, 0.94) 100%);
 `;
 
-/* --- Geometria do túnel (grid de fuga em ponto único, como na referência) --- */
+/* --- Geometria do túnel --- */
 
 const W = 1000;
 const H = 1000;
@@ -86,35 +86,53 @@ function buildPerimeterPoints(divisionsPerEdge) {
   const pts = [];
   const step = W / divisionsPerEdge;
 
-  for (let x = 0; x < W; x += step) pts.push([x, 0]);   // topo
-  for (let y = 0; y < H; y += step) pts.push([W, y]);   // direita
-  for (let x = W; x > 0; x -= step) pts.push([x, H]);   // baixo
-  for (let y = H; y > 0; y -= step) pts.push([0, y]);   // esquerda
+  for (let x = 0; x < W; x += step) pts.push([x, 0]);
+  for (let y = 0; y < H; y += step) pts.push([W, y]);
+  for (let x = W; x > 0; x -= step) pts.push([x, H]);
+  for (let y = H; y > 0; y -= step) pts.push([0, y]);
 
   return pts;
 }
 
-// menos divisões que a referência de propósito -> grid mais sutil, menos poluído
-const RAY_POINTS = buildPerimeterPoints(7);
-
-// progressão geométrica -> anéis mais densos perto do centro (perspectiva real)
 const RING_SCALES = [1, 0.8, 0.63, 0.49, 0.37, 0.28, 0.2, 0.14, 0.09, 0.05];
 
-export function RetroBackground() {
-  const gridColor = 'rgba(61, 253, 255, 0.16)'; // neonCyan bem sutil
+/* --- Presets de intensidade: mesmo layout, densidade/opacidade diferentes --- */
+const INTENSITY_PRESETS = {
+  full: {
+    rayDivisions: 7,
+    gridOpacity: 0.16,
+    accentOpacity: 0.26,
+    showScanlines: true,
+    showAccents: true,
+    vignetteInner: '32%',
+  },
+  subtle: {
+    rayDivisions: 5,       // menos raios -> grid mais espaçado
+    gridOpacity: 0.07,     // bem mais apagado, quase textura
+    accentOpacity: 0.12,
+    showScanlines: false,  // remove o ruído extra de scanline em telas de leitura
+    showAccents: true,
+    vignetteInner: '45%',  // foco central maior, cantos mais escuros
+  },
+};
+
+export function RetroBackground({ intensity = 'full' }) {
+  const preset = INTENSITY_PRESETS[intensity] || INTENSITY_PRESETS.full;
+  const rayPoints = buildPerimeterPoints(preset.rayDivisions);
+  const gridColor = `rgba(61, 253, 255, ${preset.gridOpacity})`;
 
   return (
     <Wrapper aria-hidden="true">
       <TunnelSvg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
         <defs>
           <radialGradient id="vanishGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(61, 253, 255, 0.4)" />
+            <stop offset="0%" stopColor={`rgba(61, 253, 255, ${preset.gridOpacity * 2.5})`} />
             <stop offset="100%" stopColor="rgba(61, 253, 255, 0)" />
           </radialGradient>
         </defs>
 
         <GridGroup>
-          {RAY_POINTS.map(([x, y], i) => (
+          {rayPoints.map(([x, y], i) => (
             <line key={`ray-${i}`} x1={CX} y1={CY} x2={x} y2={y} stroke={gridColor} strokeWidth="1" />
           ))}
 
@@ -138,35 +156,40 @@ export function RetroBackground() {
 
         <circle cx={CX} cy={CY} r="80" fill="url(#vanishGlow)" />
 
-        {/* blocos neon esparsos, ecoando os "segmentos" da referência - poucos, para não saturar */}
-        <AccentShape
-          points="70,150 70,200 115,200 115,235"
-          fill="none" stroke="#39FF88" strokeWidth="9"
-          strokeOpacity="0.28" strokeLinejoin="round"
-          $duration={8} $delay={0}
-        />
-        <AccentShape
-          points="930,170 930,215 885,215"
-          fill="none" stroke="#FF6EC7" strokeWidth="9"
-          strokeOpacity="0.24" strokeLinejoin="round"
-          $duration={9} $delay={1.3}
-        />
-        <AccentShape
-          points="140,860 140,810 180,810"
-          fill="none" stroke="#3DFDFF" strokeWidth="9"
-          strokeOpacity="0.24" strokeLinejoin="round"
-          $duration={10} $delay={2.2}
-        />
-        <AccentShape
-          points="860,840 860,800"
-          fill="none" stroke="#FFD166" strokeWidth="9"
-          strokeOpacity="0.22" strokeLinejoin="round"
-          $duration={9.5} $delay={0.7}
-        />
+        {preset.showAccents && (
+          <>
+            <AccentShape
+              points="70,150 70,200 115,200 115,235"
+              fill="none" stroke="#39FF88" strokeWidth="9"
+              strokeOpacity={preset.accentOpacity} strokeLinejoin="round"
+              $duration={8} $delay={0}
+            />
+            <AccentShape
+              points="930,170 930,215 885,215"
+              fill="none" stroke="#FF6EC7" strokeWidth="9"
+              strokeOpacity={preset.accentOpacity} strokeLinejoin="round"
+              $duration={9} $delay={1.3}
+            />
+            <AccentShape
+              points="140,860 140,810 180,810"
+              fill="none" stroke="#3DFDFF" strokeWidth="9"
+              strokeOpacity={preset.accentOpacity} strokeLinejoin="round"
+              $duration={10} $delay={2.2}
+            />
+            <AccentShape
+              points="860,840 860,800"
+              fill="none" stroke="#FFD166" strokeWidth="9"
+              strokeOpacity={preset.accentOpacity} strokeLinejoin="round"
+              $duration={9.5} $delay={0.7}
+            />
+          </>
+        )}
       </TunnelSvg>
 
-      <Scanlines />
-      <Vignette />
+      {preset.showScanlines && <Scanlines />}
+      <Vignette style={{
+        background: `radial-gradient(circle at center, transparent ${preset.vignetteInner}, rgba(11, 26, 20, 0.94) 100%)`,
+      }} />
     </Wrapper>
   );
 }

@@ -34,7 +34,7 @@ export function LoginPage() {
 
   return (
     <>
-      <RetroBackground />
+      <RetroBackground intensity="full" />
       <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
         <GlassPanel>
           <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>

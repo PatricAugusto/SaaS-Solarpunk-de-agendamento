@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Visão geral', end: true },
   { to: '/dashboard/eventos', label: 'Meus eventos' },
+  { to: '/dashboard/agendar', label: 'Agendar' },
   { to: '/dashboard/agendamentos', label: 'Agendamentos' },
   { to: '/dashboard/compartilhar', label: 'Compartilhar' },
 ];

@@ -14,4 +14,11 @@ const createBookingRules = [
   body('startTime').isISO8601().withMessage('startTime deve ser uma data ISO 8601 válida'),
 ];
 
-module.exports = { createEventTypeRules, createBookingRules };
+const createManualBookingRules = [
+  body('eventTypeId').isUUID().withMessage('eventTypeId inválido'),
+  body('guestName').trim().notEmpty().withMessage('Nome é obrigatório'),
+  body('guestEmail').isEmail().withMessage('E-mail inválido'),
+  body('startTime').isISO8601().withMessage('startTime deve ser uma data ISO 8601 válida'),
+];
+
+module.exports = { createEventTypeRules, createBookingRules, createManualBookingRules };

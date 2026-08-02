@@ -7,6 +7,8 @@ export const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing(4)};
   display: grid;
   gap: ${({ theme }) => theme.spacing(3)};
+  position: relative;
+  z-index: 1;
 
   ${media.tablet`
     padding: ${({ theme }) => theme.spacing(2.5)};

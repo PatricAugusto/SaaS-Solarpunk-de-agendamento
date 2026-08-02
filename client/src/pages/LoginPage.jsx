@@ -4,6 +4,7 @@ import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
 import { FormGroup, Label, Input, ErrorText } from '../components/FormField';
 import { PageContainer } from '../components/PageContainer';
+import { RetroBackground } from '../components/RetroBackground';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -32,33 +33,36 @@ export function LoginPage() {
   }
 
   return (
-    <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
-      <GlassPanel>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
-          <h1 className="font-display" style={{ fontSize: '1rem' }}>Entrar</h1>
+    <>
+      <RetroBackground />
+      <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+        <GlassPanel>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
+            <h1 className="font-display" style={{ fontSize: '1rem' }}>Entrar</h1>
 
-          <FormGroup>
-            <Label>E-mail</Label>
-            <Input type="email" name="email" value={form.email} onChange={handleChange} required />
-          </FormGroup>
+            <FormGroup>
+              <Label>E-mail</Label>
+              <Input type="email" name="email" value={form.email} onChange={handleChange} required />
+            </FormGroup>
 
-          <FormGroup>
-            <Label>Senha</Label>
-            <Input type="password" name="password" value={form.password} onChange={handleChange} required />
-          </FormGroup>
+            <FormGroup>
+              <Label>Senha</Label>
+              <Input type="password" name="password" value={form.password} onChange={handleChange} required />
+            </FormGroup>
 
-          {error && <ErrorText>{error}</ErrorText>}
+            {error && <ErrorText>{error}</ErrorText>}
 
-          <NeonButton type="submit" $variant="green" disabled={submitting}>
-            {submitting ? 'Entrando...' : 'Entrar'}
-          </NeonButton>
+            <NeonButton type="submit" $variant="green" disabled={submitting}>
+              {submitting ? 'Entrando...' : 'Entrar'}
+            </NeonButton>
 
-          <p style={{ fontSize: '0.9rem', color: 'inherit', textAlign: 'center' }}>
-            Não tem conta?{' '}
-            <Link to="/register" style={{ color: '#3DFDFF' }}>Criar conta</Link>
-          </p>
-        </form>
-      </GlassPanel>
-    </PageContainer>
+            <p style={{ fontSize: '0.9rem', color: 'inherit', textAlign: 'center' }}>
+              Não tem conta?{' '}
+              <Link to="/register" style={{ color: '#3DFDFF' }}>Criar conta</Link>
+            </p>
+          </form>
+        </GlassPanel>
+      </PageContainer>
+    </>
   );
 }

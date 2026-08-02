@@ -1,5 +1,11 @@
 import styled from 'styled-components';
 import { media } from '../styles/media';
+import { keyframes } from 'styled-components';
+
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 export const GlassPanel = styled.div`
   background: ${({ theme }) => theme.colors.surface};
@@ -11,6 +17,12 @@ export const GlassPanel = styled.div`
   padding: ${({ theme, $padding }) => theme.spacing($padding || 4)};
   position: relative;
   overflow: hidden;
+
+  animation: ${fadeInUp} 0.5s ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   &::before {
     content: '';

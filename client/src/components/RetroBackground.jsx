@@ -1,60 +1,48 @@
 import styled, { keyframes } from 'styled-components';
 
-const gridScroll = keyframes`
-  from { background-position: 0 0; }
-  to { background-position: 0 64px; }
-`;
-
-const floatOrb = keyframes`
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(20px, -30px, 0) scale(1.08); }
+const breathe = keyframes`
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 `;
 
 const flicker = keyframes`
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.5; }
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.4; }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.12); }
 `;
 
 const Wrapper = styled.div`
   position: fixed;
   inset: 0;
-  overflow: hidden;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
   background: ${({ theme }) => theme.colors.background};
 `;
 
-/* Grid de perspectiva, tipo "chão synthwave" */
-const Grid = styled.div`
+const TunnelSvg = styled.svg`
   position: absolute;
-  inset: -20% 0 0 0;
-  height: 140%;
-  background-image:
-    linear-gradient(${({ theme }) => theme.colors.glassBorderHighlight} 1px, transparent 1px),
-    linear-gradient(90deg, ${({ theme }) => theme.colors.glassBorderHighlight} 1px, transparent 1px);
-  background-size: 64px 64px;
-  opacity: 0.18;
-  transform: perspective(500px) rotateX(60deg);
-  transform-origin: bottom;
-  animation: ${gridScroll} 6s linear infinite;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+`;
+
+const GridGroup = styled.g`
+  animation: ${breathe} 8s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 `;
 
-/* Orbs neon flutuantes, desfocados, dando profundidade */
-const Orb = styled.div`
-  position: absolute;
-  width: ${({ $size }) => $size}px;
-  height: ${({ $size }) => $size}px;
-  left: ${({ $x }) => $x}%;
-  top: ${({ $y }) => $y}%;
-  border-radius: 50%;
-  background: ${({ $color }) => $color};
-  filter: blur(60px);
-  opacity: 0.35;
-  animation: ${floatOrb} ${({ $duration }) => $duration}s ease-in-out infinite;
+const AccentShape = styled.polyline`
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ${pulseGlow} ${({ $duration }) => $duration}s ease-in-out infinite;
   animation-delay: ${({ $delay }) => $delay}s;
 
   @media (prefers-reduced-motion: reduce) {
@@ -62,40 +50,121 @@ const Orb = styled.div`
   }
 `;
 
-/* Scanline sutil de CRT por cima de tudo */
 const Scanlines = styled.div`
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.025) 0px,
-    rgba(255, 255, 255, 0.025) 1px,
+    rgba(255, 255, 255, 0.02) 0px,
+    rgba(255, 255, 255, 0.02) 1px,
     transparent 1px,
     transparent 3px
   );
-  animation: ${flicker} 4s ease-in-out infinite;
+  animation: ${flicker} 5s ease-in-out infinite;
   mix-blend-mode: overlay;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    opacity: 0.35;
+    opacity: 0.3;
   }
 `;
 
-/* Vinheta pra escurecer as bordas e focar o conteúdo central */
 const Vignette = styled.div`
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 40%, rgba(11, 26, 20, 0.9) 100%);
+  background: radial-gradient(circle at center, transparent 32%, rgba(11, 26, 20, 0.94) 100%);
 `;
 
+/* --- Geometria do túnel (grid de fuga em ponto único, como na referência) --- */
+
+const W = 1000;
+const H = 1000;
+const CX = W / 2;
+const CY = H / 2;
+
+function buildPerimeterPoints(divisionsPerEdge) {
+  const pts = [];
+  const step = W / divisionsPerEdge;
+
+  for (let x = 0; x < W; x += step) pts.push([x, 0]);   // topo
+  for (let y = 0; y < H; y += step) pts.push([W, y]);   // direita
+  for (let x = W; x > 0; x -= step) pts.push([x, H]);   // baixo
+  for (let y = H; y > 0; y -= step) pts.push([0, y]);   // esquerda
+
+  return pts;
+}
+
+// menos divisões que a referência de propósito -> grid mais sutil, menos poluído
+const RAY_POINTS = buildPerimeterPoints(7);
+
+// progressão geométrica -> anéis mais densos perto do centro (perspectiva real)
+const RING_SCALES = [1, 0.8, 0.63, 0.49, 0.37, 0.28, 0.2, 0.14, 0.09, 0.05];
+
 export function RetroBackground() {
+  const gridColor = 'rgba(61, 253, 255, 0.16)'; // neonCyan bem sutil
+
   return (
     <Wrapper aria-hidden="true">
-      <Grid />
-      <Orb $size={280} $x={10} $y={15} $color="#39FF88" $duration={9} $delay={0} />
-      <Orb $size={220} $x={75} $y={10} $color="#3DFDFF" $duration={11} $delay={1.5} />
-      <Orb $size={260} $x={65} $y={70} $color="#FF6EC7" $duration={10} $delay={3} />
+      <TunnelSvg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="vanishGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(61, 253, 255, 0.4)" />
+            <stop offset="100%" stopColor="rgba(61, 253, 255, 0)" />
+          </radialGradient>
+        </defs>
+
+        <GridGroup>
+          {RAY_POINTS.map(([x, y], i) => (
+            <line key={`ray-${i}`} x1={CX} y1={CY} x2={x} y2={y} stroke={gridColor} strokeWidth="1" />
+          ))}
+
+          {RING_SCALES.map((scale, i) => {
+            const w = W * scale;
+            const h = H * scale;
+            return (
+              <rect
+                key={`ring-${i}`}
+                x={CX - w / 2}
+                y={CY - h / 2}
+                width={w}
+                height={h}
+                fill="none"
+                stroke={gridColor}
+                strokeWidth="1"
+              />
+            );
+          })}
+        </GridGroup>
+
+        <circle cx={CX} cy={CY} r="80" fill="url(#vanishGlow)" />
+
+        {/* blocos neon esparsos, ecoando os "segmentos" da referência - poucos, para não saturar */}
+        <AccentShape
+          points="70,150 70,200 115,200 115,235"
+          fill="none" stroke="#39FF88" strokeWidth="9"
+          strokeOpacity="0.28" strokeLinejoin="round"
+          $duration={8} $delay={0}
+        />
+        <AccentShape
+          points="930,170 930,215 885,215"
+          fill="none" stroke="#FF6EC7" strokeWidth="9"
+          strokeOpacity="0.24" strokeLinejoin="round"
+          $duration={9} $delay={1.3}
+        />
+        <AccentShape
+          points="140,860 140,810 180,810"
+          fill="none" stroke="#3DFDFF" strokeWidth="9"
+          strokeOpacity="0.24" strokeLinejoin="round"
+          $duration={10} $delay={2.2}
+        />
+        <AccentShape
+          points="860,840 860,800"
+          fill="none" stroke="#FFD166" strokeWidth="9"
+          strokeOpacity="0.22" strokeLinejoin="round"
+          $duration={9.5} $delay={0.7}
+        />
+      </TunnelSvg>
+
       <Scanlines />
       <Vignette />
     </Wrapper>

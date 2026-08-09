@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 const pulse = keyframes`
@@ -14,6 +15,7 @@ const Wrapper = styled.div`
   place-items: center;
   gap: 14px;
   padding: ${({ theme }) => theme.spacing(6)} 0;
+  text-align: center;
 `;
 
 const Orb = styled.div`
@@ -34,11 +36,29 @@ const Label = styled.p`
   animation: ${pulse} 1.6s ease-in-out infinite;
 `;
 
+const SubLabel = styled.p`
+  font-size: 0.8rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  max-width: 280px;
+`;
+
 export function Loader({ label = 'Carregando...' }) {
+  const [showSlowNotice, setShowSlowNotice] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSlowNotice(true), 6000); // 6s sem resposta
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Wrapper>
       <Orb />
       <Label className="font-mono">{label}</Label>
+      {showSlowNotice && (
+        <SubLabel>
+          O servidor estava "dormindo" pra economizar recursos, já está acordando, deve levar só mais alguns segundos.
+        </SubLabel>
+      )}
     </Wrapper>
   );
 }

@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/userModel');
 const { generateToken } = require('../utils/jwt');
+const passwordResetModel = require('../models/passwordResetModel');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 const SALT_ROUNDS = 10;
 
@@ -63,4 +65,50 @@ async function me(req, res) {
   return res.json({ user });
 }
 
-module.exports = { register, login, me };
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    const user = await userModel.findUserByEmail(email);
+
+    // Mensagem genérica sempre, mesmo se o e-mail não existir (evita enumeração de contas)
+    const genericResponse = {
+      message: 'Se esse e-mail estiver cadastrado, você receberá instruções de recuperação em instantes.',
+    };
+
+    if (!user) {
+      return res.json(genericResponse);
+    }
+
+    const rawToken = await passwordResetModel.createResetToken(user.id);
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+
+    await sendPasswordResetEmail(user.email, resetUrl);
+
+    return res.json(genericResponse);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Erro ao processar solicitação' });
+  }
+}
+
+async function resetPassword(req, res) {
+  try {
+    const { token, newPassword } = req.body;
+
+    const resetRecord = await passwordResetModel.findValidToken(token);
+    if (!resetRecord) {
+      return res.status(400).json({ error: 'Link inválido ou expirado. Solicite a recuperação novamente.' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await userModel.updatePassword(resetRecord.user_id, passwordHash);
+    await passwordResetModel.markTokenUsed(resetRecord.id);
+
+    return res.json({ message: 'Senha atualizada com sucesso. Você já pode entrar com a nova senha.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Erro ao redefinir senha' });
+  }
+}
+
+module.exports = { register, login, me, forgotPassword, resetPassword };

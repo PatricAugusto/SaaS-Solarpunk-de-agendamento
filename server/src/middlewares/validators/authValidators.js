@@ -25,4 +25,19 @@ function validate(req, res, next) {
   next();
 }
 
-module.exports = { registerRules, loginRules, validate };
+const forgotPasswordRules = [
+  body('email').isEmail().withMessage('E-mail inválido'),
+];
+
+const resetPasswordRules = [
+  body('token').notEmpty().withMessage('Token é obrigatório'),
+  body('newPassword').isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres'),
+];
+
+module.exports = {
+  registerRules,
+  loginRules,
+  forgotPasswordRules,
+  resetPasswordRules,
+  validate,
+};

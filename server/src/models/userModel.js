@@ -31,9 +31,17 @@ async function findUserById(id) {
   return rows[0];
 }
 
+async function updatePassword(userId, passwordHash) {
+  await pool.query(`UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`, [
+    passwordHash,
+    userId,
+  ]);
+}
+
 module.exports = {
   createUser,
   findUserByEmail,
   findUserByUsername,
   findUserById,
+  updatePassword, 
 };

@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { GlassPanel } from '../components/GlassPanel';
-import { NeonButton } from '../components/NeonButton';
-import { FormGroup, Label, Input, ErrorText } from '../components/FormField';
-import { PasswordInput } from '../components/PasswordInput';
-import { PageContainer } from '../components/PageContainer';
-import { RetroBackground } from '../components/RetroBackground';
-import { useAuth } from '../context/AuthContext';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { GlassPanel } from "../components/GlassPanel";
+import { NeonButton } from "../components/NeonButton";
+import { FormGroup, Label, Input, ErrorText } from "../components/FormField";
+import { PasswordInput } from "../components/PasswordInput";
+import { PageContainer } from "../components/PageContainer";
+import { RetroBackground } from "../components/RetroBackground";
+import { useAuth } from "../context/AuthContext";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', username: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    username: "",
+  });
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   function handleChange(e) {
-    if (e.target.name === 'username') {
+    if (e.target.name === "username") {
       setForm({
         ...form,
         username: e.target.value
           .toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9-]/g, ''),
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9-]/g, ""),
       });
     } else {
       setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,17 +37,17 @@ export function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
       await register(form);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
       const data = err.response?.data;
       if (data?.errors?.length) {
-        setError(data.errors.map((e) => e.msg).join(' • '));
+        setError(data.errors.map((e) => e.msg).join(" • "));
       } else {
-        setError(data?.error || 'Erro ao criar conta');
+        setError(data?.error || "Erro ao criar conta");
       }
     } finally {
       setSubmitting(false);
@@ -51,14 +57,24 @@ export function RegisterPage() {
   return (
     <>
       <RetroBackground intensity="full" />
-      <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+      <PageContainer
+        $narrow
+        style={{ minHeight: "100vh", alignContent: "center" }}
+      >
         <GlassPanel>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 18 }}>
-            <h1 className="font-display" style={{ fontSize: '1rem' }}>Criar conta</h1>
+          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 18 }}>
+            <h1 className="font-display" style={{ fontSize: "1rem" }}>
+              Criar conta
+            </h1>
 
             <FormGroup>
               <Label>Nome</Label>
-              <Input name="name" value={form.name} onChange={handleChange} required />
+              <Input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
             </FormGroup>
 
             <FormGroup>
@@ -74,12 +90,19 @@ export function RegisterPage() {
 
             <FormGroup>
               <Label>E-mail</Label>
-              <Input type="email" name="email" value={form.email} onChange={handleChange} required />
+              <Input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
             </FormGroup>
 
             <FormGroup>
               <Label>Senha</Label>
               <PasswordInput
+                name="password"
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -89,11 +112,20 @@ export function RegisterPage() {
             {error && <ErrorText>{error}</ErrorText>}
 
             <NeonButton type="submit" $variant="cyan" disabled={submitting}>
-              {submitting ? 'Criando...' : 'Criar conta'}
+              {submitting ? "Criando..." : "Criar conta"}
             </NeonButton>
 
-            <p style={{ fontSize: '0.9rem', color: 'inherit', textAlign: 'center' }}>
-              Já tem conta? <Link to="/login" style={{ color: '#39FF88' }}>Entrar</Link>
+            <p
+              style={{
+                fontSize: "0.9rem",
+                color: "inherit",
+                textAlign: "center",
+              }}
+            >
+              Já tem conta?{" "}
+              <Link to="/login" style={{ color: "#39FF88" }}>
+                Entrar
+              </Link>
             </p>
           </form>
         </GlassPanel>

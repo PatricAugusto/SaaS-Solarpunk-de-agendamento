@@ -1,32 +1,32 @@
-import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { GlassPanel } from '../components/GlassPanel';
-import { NeonButton } from '../components/NeonButton';
-import { FormGroup, Label, ErrorText } from '../components/FormField';
-import { PasswordInput } from '../components/PasswordInput';
-import { PageContainer } from '../components/PageContainer';
-import { RetroBackground } from '../components/RetroBackground';
-import { authService } from '../services/authService';
+import { useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { GlassPanel } from "../components/GlassPanel";
+import { NeonButton } from "../components/NeonButton";
+import { FormGroup, Label, ErrorText } from "../components/FormField";
+import { PasswordInput } from "../components/PasswordInput";
+import { PageContainer } from "../components/PageContainer";
+import { RetroBackground } from "../components/RetroBackground";
+import { authService } from "../services/authService";
 
 export function ResetPasswordPage() {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ newPassword: '', confirmPassword: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (form.newPassword !== form.confirmPassword) {
-      setError('As senhas não coincidem');
+      setError("As senhas não coincidem");
       return;
     }
 
     if (form.newPassword.length < 6) {
-      setError('Senha deve ter no mínimo 6 caracteres');
+      setError("Senha deve ter no mínimo 6 caracteres");
       return;
     }
 
@@ -34,9 +34,9 @@ export function ResetPasswordPage() {
     try {
       await authService.resetPassword(token, form.newPassword);
       setDone(true);
-      setTimeout(() => navigate('/login'), 2500);
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao redefinir senha');
+      setError(err.response?.data?.error || "Erro ao redefinir senha");
     } finally {
       setSubmitting(false);
     }
@@ -45,24 +45,35 @@ export function ResetPasswordPage() {
   return (
     <>
       <RetroBackground intensity="full" />
-      <PageContainer $narrow style={{ minHeight: '100vh', alignContent: 'center' }}>
+      <PageContainer
+        $narrow
+        style={{ minHeight: "100vh", alignContent: "center" }}
+      >
         <GlassPanel>
           {done ? (
-            <div style={{ textAlign: 'center', display: 'grid', gap: 12 }}>
-              <h1 className="font-display" style={{ fontSize: '1rem', color: '#39FF88' }}>
+            <div style={{ textAlign: "center", display: "grid", gap: 12 }}>
+              <h1
+                className="font-display"
+                style={{ fontSize: "1rem", color: "#39FF88" }}
+              >
                 Senha atualizada! ✨
               </h1>
               <p>Redirecionando para o login...</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
-              <h1 className="font-display" style={{ fontSize: '1rem' }}>Nova senha</h1>
+            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }}>
+              <h1 className="font-display" style={{ fontSize: "1rem" }}>
+                Nova senha
+              </h1>
 
               <FormGroup>
                 <Label>Nova senha</Label>
                 <PasswordInput
+                  name="newPassword"
                   value={form.newPassword}
-                  onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, newPassword: e.target.value })
+                  }
                   required
                 />
               </FormGroup>
@@ -70,8 +81,11 @@ export function ResetPasswordPage() {
               <FormGroup>
                 <Label>Confirmar nova senha</Label>
                 <PasswordInput
+                  name="confirmPassword"
                   value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, confirmPassword: e.target.value })
+                  }
                   required
                 />
               </FormGroup>
@@ -79,11 +93,13 @@ export function ResetPasswordPage() {
               {error && <ErrorText>{error}</ErrorText>}
 
               <NeonButton type="submit" $variant="green" disabled={submitting}>
-                {submitting ? 'Salvando...' : 'Redefinir senha'}
+                {submitting ? "Salvando..." : "Redefinir senha"}
               </NeonButton>
 
-              <p style={{ fontSize: '0.9rem', textAlign: 'center' }}>
-                <Link to="/login" style={{ color: '#3DFDFF' }}>Voltar para o login</Link>
+              <p style={{ fontSize: "0.9rem", textAlign: "center" }}>
+                <Link to="/login" style={{ color: "#3DFDFF" }}>
+                  Voltar para o login
+                </Link>
               </p>
             </form>
           )}

@@ -55,13 +55,14 @@ const EyeClosedIcon = () => (
   </svg>
 );
 
-export function PasswordInput({ value, onChange, placeholder, required = false }) {
+export function PasswordInput({ name, value, onChange, placeholder, required = false }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <Wrapper>
       <InputWrapper>
         <StyledInput
+          name={name}
           type={showPassword ? 'text' : 'password'}
           value={value}
           onChange={onChange}

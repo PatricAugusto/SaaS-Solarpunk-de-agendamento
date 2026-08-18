@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GlassPanel } from '../components/GlassPanel';
 import { NeonButton } from '../components/NeonButton';
-import { FormGroup, Label, Input, ErrorText } from '../components/FormField';
+import { FormGroup, Label, ErrorText } from '../components/FormField';
+import { PasswordInput } from '../components/PasswordInput';
 import { PageContainer } from '../components/PageContainer';
 import { RetroBackground } from '../components/RetroBackground';
 import { authService } from '../services/authService';
@@ -21,6 +22,11 @@ export function ResetPasswordPage() {
 
     if (form.newPassword !== form.confirmPassword) {
       setError('As senhas não coincidem');
+      return;
+    }
+
+    if (form.newPassword.length < 6) {
+      setError('Senha deve ter no mínimo 6 caracteres');
       return;
     }
 
@@ -54,23 +60,19 @@ export function ResetPasswordPage() {
 
               <FormGroup>
                 <Label>Nova senha</Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={form.newPassword}
                   onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
                   required
-                  minLength={6}
                 />
               </FormGroup>
 
               <FormGroup>
                 <Label>Confirmar nova senha</Label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                   required
-                  minLength={6}
                 />
               </FormGroup>
 
